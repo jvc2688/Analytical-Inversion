@@ -79,12 +79,12 @@ read.geoschem.lonlatlev=function(){
   path='/n/holyscratch01/jacob_lab/yuzhongzhang/Permian/Inv/Pert_0000/ts/nc_ts_satellite.20190101.nc'
   require(ncdf4)
   fid=nc_open(path)
-  lon=ncvar_get(fid,'LON')
-  lat=ncvar_get(fid,'LAT')
-  etae=ncvar_get(fid,'ETAE')
-  etac=ncvar_get(fid,'ETAC')
+  lon=ncvar_get(fid,'longitude')
+  lat=ncvar_get(fid,'latitude')
+  hyam=ncvar_get(fid,'hyam')
+  hybm=ncvar_get(fid,'hybm')
   nc_close(fid)
-  return(list(lon=lon,lat=lat,etac=etac,etae=etae))
+  return(list(lon=lon,lat=lat,hyam=hyam,hybm=hybm))
 }
 
 #Read CH4 dry mixing ratio fields from GEOS-Chem output
@@ -148,7 +148,7 @@ process.a.profile=function(ir,tp,gc,var='xch4_bias_corrected'){
     p=rev(seq(tpps,by=tppint*(-1.),length.out=length(tpak)+1)) #hPa
   )
  
-  modp=gc$etac*gcps
+  modp=gc$hybm*gcps+gc$hyam
   modcmr=vector('numeric',length=length(gc$ch4))
 
   for (im in 1:length(gc$ch4)){ 
@@ -206,8 +206,8 @@ process.a.day=function(date,gclonlatlev,option){
         datestr=datestr,
         lon=gclonlatlev$lon,
         lat=gclonlatlev$lat,
-        etac=gclonlatlev$etac,
-        etae=gclonlatlev$etae,
+        hyam=gclonlatlev$hyam,
+        hybm=gclonlatlev$hybm,
         ps=ps,
         ch4=geoschem
     )
