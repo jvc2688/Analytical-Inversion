@@ -3,7 +3,7 @@
 
 #Load processed and archived GEOS-Chem results (from script_proc_simu.R)
 load.model=function(datestr,type='fullinv3'){
-   path='/n/holyscratch01/jacob_lab/yuzhongzhang/Permian/invdata/'
+   path='~/github/jvc2688/Analytical-Inversion/'
    file=paste0(path,'data_model_',datestr,'.RData')
    if (!file.exists(file)) return(NULL)
    load(file)
@@ -53,18 +53,18 @@ do.calc=function(date,e,cmt,path){
 }
 
 ###################################################
-cmt='default2' 
+cmt='fullinv' 
 #Inventory used in GEOS-Chem baseline simulation
 
 if (cmt!='default'&cmt!='default2'){
-  pathout='/net/seasasfs02/srv/export/seasasfs02/share_root/yuzhongzhang/Permian/jac_emis_based/'
+  pathout='~/github/jvc2688/Analytical-Inversion/'
 }else {
-  pathout='/n/holyscratch01/jacob_lab/yuzhongzhang/Permian/invdata/'
+  pathout='~/github/jvc2688/Analytical-Inversion/'
 }
 
 e=load.prior.emis(type=cmt)
-dates=seq(from=as.Date('2019-03-28'),
-            to=as.Date('2019-03-31'),
+dates=seq(from=as.Date('2019-01-01'),
+            to=as.Date('2019-01-03'),
             by='day')
 
 datestrs=sapply(dates,format, format='%Y%m%d')

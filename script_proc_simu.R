@@ -10,10 +10,10 @@ read.tropomi=function(file){
   #surface_pressure Pa
   #pressure_interval Pa
 
-  path='/n/holyscratch01/jacob_lab/yuzhongzhang/tropomi/data/'
+  path='/Volumes/home_share/projects/sentinel/L2_data/'
   require(ncdf4)
-  pathlist=c(rep('PRODUCT/',7),rep('DETAILED_RESULTS/',1),
-             rep('INPUT_DATA/',6))
+  pathlist=c(rep('PRODUCT/',7),rep('PRODUCT/SUPPORT_DATA/DETAILED_RESULTS/',1),
+             rep('PRODUCT/SUPPORT_DATA/INPUT_DATA/',6))
   varlist=c('latitude','longitude','qa_value','time_utc',
             'methane_mixing_ratio','methane_mixing_ratio_precision',
             'methane_mixing_ratio_bias_corrected',
@@ -58,8 +58,8 @@ process.tropomi=function(file){
 #Read GEOS-FP met data to get GEOS-Chem model surface pressure
 #IMIN, IMAX of region    :  34 128
 #JMIN, JMAX of region    :  51 121
-read.geosfp=function(datestr,irange=c(34,128), jrange=c(51,121)){
-  path='/n/holylfs/EXTERNAL_REPOS/GEOS-CHEM/gcgrid/gcdata/ExtData/GEOS_0.25x0.3125_NA/GEOS_FP/'
+read.geosfp=function(datestr,irange=c(44,131), jrange=c(30,149)){
+  path='~/geos-chem-download/ExtData/GEOS_0.25x0.3125_NA/GEOS_FP/'
   yrstr=substr(datestr,1,4)
   mnstr=substr(datestr,5,6)
   file=paste0(path,yrstr,'/',mnstr,'/GEOSFP.',datestr,'.I3.025x03125.NA.nc')
@@ -76,7 +76,7 @@ read.geosfp=function(datestr,irange=c(34,128), jrange=c(51,121)){
 
 #Read GEOS-Chem coordinates from its output
 read.geoschem.lonlatlev=function(){
-  path='/n/holyscratch01/jacob_lab/yuzhongzhang/Permian/Inv/Pert_0000/ts/nc_ts_satellite.20190101.nc'
+  path='~/github/geos_chem_aws/Pert_0000/OutputDir/ts_satellite.20190101.nc'
   require(ncdf4)
   fid=nc_open(path)
   lon=ncvar_get(fid,'longitude')
@@ -90,11 +90,11 @@ read.geoschem.lonlatlev=function(){
 #Read CH4 dry mixing ratio fields from GEOS-Chem output
 #For a specific date (datestr YYYYMMDD)
 read.geoschem=function(datestr,path){
-  file=paste0(path,'nc_ts_satellite.',datestr,'.nc')
+  file=paste0(path,'ts_satellite.',datestr,'.nc')
 
   require(ncdf4)
   fid=nc_open(file)
-  ch4=ncvar_get(fid,'IJ-AVG-S__CH4')
+  ch4=ncvar_get(fid,'IJ-AVG-$_CH4')
   nc_close(fid)
   return(ch4)
 }
@@ -104,7 +104,7 @@ read.geoschem=function(datestr,path){
 #from baseline and all perturbed simulations
 read.geoschem.allsimu=function(datestr,path,simids=seq(0,112)){
   re=lapply(simids, function(i){
-      path=paste0(path,'Pert_',sprintf('%04d',i),'/ts/')
+      path=paste0(path,'Pert_',sprintf('%04d',i),'/OutputDir/')
       read.geoschem(datestr,path)
   })
   return(re)
@@ -133,6 +133,7 @@ calc.model.cmr=function(mod, sat){
 process.a.profile=function(ir,tp,gc,var='xch4_bias_corrected'){
   i=which.min(abs(tp$lon[ir]-gc$lon))
   j=which.min(abs(tp$lat[ir]-gc$lat))
+  print(c(i, j))
   gcps=gc$ps[i,j]
   tpps=tp$surface_pressure[ir]/100 #Pa->hPa
   #disregard when simulation and retrieval surface are off by too much
@@ -169,6 +170,7 @@ process.a.profile=function(ir,tp,gc,var='xch4_bias_corrected'){
 
 #Process a TROPOMI data file
 process.a.file=function(file,gc){
+  print(c('processing', file))
   lonmin=min(gc$lon)
   lonmax=max(gc$lon)
   latmin=min(gc$lat)
@@ -196,7 +198,7 @@ process.a.day=function(date,gclonlatlev,option){
   datestr=format(date,'%Y%m%d')
   print(datestr)
   files=list.files(
-           path='/n/holyscratch01/jacob_lab/yuzhongzhang/tropomi/data/',
+           path='/Volumes/home_share/projects/sentinel/L2_data/',
            pattern=paste0('S5P_(RPRO|OFFL)_L2__CH4____',datestr,'.*.nc'))
   print(files)
   if (length(files)>0){
@@ -236,13 +238,14 @@ process.a.day=function(date,gclonlatlev,option){
 
 ###############################################
 #Required argument: datestr YYYYMMDD
-args=commandArgs(trailingOnly=T)
-date=as.Date(args[1])
+#args=commandArgs(trailingOnly=T)
+#date=as.Date(args[1])
+date=as.Date('2019-01-03')
 
 option=list(
-  outpath='/n/holyscratch01/jacob_lab/yuzhongzhang/Permian/invdata/',
-  gcpath='/n/holyscratch01/jacob_lab/yuzhongzhang/Permian/Inv/',
-  gcsimu=seq(0,112),
+  outpath='~/github/jvc2688/Analytical-Inversion/',
+  gcpath='~/github/geos_chem_aws/',
+  gcsimu=seq(0,4),
   save.tropomi=T,
   save.model=T
 )
